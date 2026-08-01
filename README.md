@@ -31,18 +31,21 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → Data API |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → API Keys → Publishable key (`sb_publishable_…`) |
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → Secret key (`sb_secret_…`). Обходить RLS — тільки на сервері |
+| `SUPABASE_DB_URL` | Supabase → Project Settings → Database → Connection string → URI. Містить пароль бази; потрібен лише для `npm run db:migrate` |
 | `ANTHROPIC_API_KEY` | [platform.claude.com](https://platform.claude.com) → API keys. Потрібен лише для генерації |
 | `NEXT_PUBLIC_APP_URL` | Базова адреса застосунку |
 
 ### База даних
 
-Supabase → SQL Editor → виконати `supabase/migrations/0001_init.sql`.
-
-Перевірити, що все на місці:
-
 ```bash
-npm run db:check
+npm run db:migrate       # застосувати міграції
+npm run db:check         # перевірити, що таблиці на місці
 ```
+
+Міграції застосовуються по одному разу і записуються в таблицю
+`schema_migrations`, тому повторний запуск безпечний. Альтернатива без
+`SUPABASE_DB_URL` — виконати `supabase/migrations/0001_init.sql` вручну
+в Supabase → SQL Editor.
 
 Для розробки варто вимкнути підтвердження пошти:
 Authentication → Providers → Email → Confirm email.
@@ -55,6 +58,7 @@ Authentication → Providers → Email → Confirm email.
 | `npm run build` | Продакшн-збірка |
 | `npm test` | Юніт-тести (vitest) |
 | `npm run typecheck` | Перевірка типів |
+| `npm run db:migrate` | Застосувати міграції до бази |
 | `npm run db:check` | Діагностика підключення до Supabase |
 
 ## Розробка без ключів
