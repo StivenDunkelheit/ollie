@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d5d9e2;
+  --color-ink-300: #b0b8c8;
+  --color-ink-400: #8590a8;
+  --color-ink-500: #66728c;
+  --color-ink-600: #515b73;
+  --color-ink-700: #424a5d;
+  --color-ink-800: #393f4e;
+  --color-ink-900: #191c24;
+  --color-ink-950: #0f1116;
+
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dae6ff;
+  --color-brand-200: #bdd3ff;
+  --color-brand-300: #90b6ff;
+  --color-brand-400: #5b8dff;
+  --color-brand-500: #3565fb;
+  --color-brand-600: #1f45f0;
+  --color-brand-700: #1834dc;
+  --color-brand-800: #1a2eb2;
+  --color-brand-900: #1c2d8c;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-50 text-ink-900 font-sans antialiased;
+}
+
+/* Полноэкранные режимы урока не должны скроллиться по горизонтали */
+.fullscreen-shell {
+  @apply fixed inset-0 overflow-hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
