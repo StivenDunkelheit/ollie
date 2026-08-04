@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { LoginForm } from './login-form';
 
 export default function LoginPage() {
@@ -9,11 +8,11 @@ export default function LoginPage() {
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
-      <p className="text-ink-500 mt-6 text-center text-sm">
-        Немає акаунта?{' '}
-        <Link href="/register" className="text-brand-600 font-medium hover:underline">
-          Зареєструватися
-        </Link>
+      {/* Самореєстрації немає: акаунт викладача заводиться командою
+          `npm run teacher:create`. Учню акаунт не потрібен зовсім — він
+          заходить лише за посиланням на сесію. */}
+      <p className="text-ink-400 mt-6 text-center text-xs">
+        Доступ до кабінету надає адміністратор.
       </p>
     </>
   );

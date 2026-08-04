@@ -35,29 +35,9 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   redirect(next.startsWith('/') ? next : '/lessons');
 }
 
-export async function register(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const { email, password } = readCredentials(formData);
-  const name = String(formData.get('name') ?? '').trim();
-
-  if (!email || !password) return { error: 'Введіть пошту і пароль.' };
-  if (password.length < 8) return { error: 'Пароль має бути не коротшим за 8 символів.' };
-
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { name } },
-  });
-
-  if (error) return { error: `Не вдалося зареєструватися: ${error.message}` };
-
-  // Если в проекте включено підтвердження пошти — сессии не будет.
-  if (!data.session) {
-    return { notice: 'Перевірте пошту — ми надіслали лист із підтвердженням.' };
-  }
-
-  redirect('/lessons');
-}
+// Самореєстрації немає навмисно: платформа розрахована на закритий круг
+// викладачів, і кожна генерація уроку коштує грошей. Акаунт заводиться
+// командою `npm run teacher:create`, яка вимагає secret-ключ проєкту.
 
 export async function logout() {
   const supabase = await createClient();
