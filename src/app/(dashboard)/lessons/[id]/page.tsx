@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { GenerationProgress } from './generation-progress';
 import { LessonOutline } from './lesson-outline';
 import { PreviewLauncher } from './preview-launcher';
+import { StartSessionButton } from './start-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,9 +73,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 
         <div className="flex items-center gap-2">
           <PreviewLauncher lesson={content} />
-          <Button disabled title="Буде на наступному кроці">
-            Почати сесію
-          </Button>
+          <StartSessionButton lessonId={lesson.id} />
         </div>
       </div>
 

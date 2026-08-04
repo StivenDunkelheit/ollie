@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "db:check": "node --env-file=.env.local scripts/check-db.mjs",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "db:reset-sessions": "node --env-file=.env.local scripts/reset-sessions.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

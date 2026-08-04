@@ -24,6 +24,6 @@ export function supabaseSecretKey(): string {
   return required('SUPABASE_SECRET_KEY', process.env.SUPABASE_SECRET_KEY);
 }
 
-export function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-}
+// Адрес приложения намеренно не читается отсюда: он определяется из самого
+// запроса — см. lib/origin.ts. Так ссылка ученику работает и локально, и на
+// превью, и на продакшене без отдельной настройки.
