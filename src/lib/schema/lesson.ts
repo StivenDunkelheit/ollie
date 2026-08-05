@@ -141,6 +141,15 @@ const TaskBlock = z.object({
   kind: z.literal('task'),
   id,
   title: z.string().nullable(),
+  difficulty: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      'Складність завдання, 1 (найлегше) — 5 (найважче). Уздовж уроку не може спадати: ' +
+        'кожне наступне завдання таке саме або складніше за попереднє.',
+    ),
   timer_sec: z
     .number()
     .int()

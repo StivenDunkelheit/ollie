@@ -22,6 +22,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b3',
       title: 'Що більше?',
+      difficulty: 1,
       timer_sec: null,
       is_bonus: false,
       interactive: {
@@ -40,6 +41,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b4',
       title: 'Оберіть усі правильні',
+      difficulty: 2,
       timer_sec: 60,
       is_bonus: false,
       interactive: {
@@ -59,6 +61,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b5',
       title: null,
+      difficulty: 2,
       timer_sec: null,
       is_bonus: false,
       interactive: {
@@ -76,6 +79,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b7',
       title: 'З’єднай пари',
+      difficulty: 3,
       timer_sec: null,
       is_bonus: false,
       interactive: {
@@ -102,6 +106,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b8',
       title: 'За зростанням',
+      difficulty: 4,
       timer_sec: null,
       is_bonus: false,
       interactive: {
@@ -119,6 +124,7 @@ export const SAMPLE_LESSON: Lesson = {
       kind: 'task',
       id: 'b9',
       title: 'Розклади по скринях',
+      difficulty: 5,
       timer_sec: null,
       is_bonus: true,
       interactive: {

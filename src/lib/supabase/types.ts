@@ -54,6 +54,8 @@ export interface Database {
           generate_spares: boolean;
           ai_meta: Json | null;
           error_message: string | null;
+          generation_token: string | null;
+          generation_started_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -70,6 +72,8 @@ export interface Database {
           generate_spares?: boolean;
           ai_meta?: Json | null;
           error_message?: string | null;
+          generation_token?: string | null;
+          generation_started_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,6 +90,8 @@ export interface Database {
           generate_spares?: boolean;
           ai_meta?: Json | null;
           error_message?: string | null;
+          generation_token?: string | null;
+          generation_started_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

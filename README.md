@@ -32,7 +32,8 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → API Keys → Publishable key (`sb_publishable_…`) |
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → Secret key (`sb_secret_…`). Обходить RLS — тільки на сервері |
 | `SUPABASE_DB_URL` | Supabase → Project Settings → Database → Connection string → URI. Містить пароль бази; потрібен лише для `npm run db:migrate` |
-| `ANTHROPIC_API_KEY` | [platform.claude.com](https://platform.claude.com) → API keys. Потрібен лише для генерації |
+| `GENERATION_WEBHOOK_URL` | Вебхук сценарію Make.com, який генерує урок. Див. [docs/generation-webhook.md](docs/generation-webhook.md) |
+| `ANTHROPIC_API_KEY` | Потрібен лише як запасний шлях, коли вебхук не заданий |
 | `NEXT_PUBLIC_APP_URL` | Базова адреса застосунку |
 
 ### База даних

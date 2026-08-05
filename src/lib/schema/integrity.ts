@@ -137,6 +137,42 @@ function checkBlock(block: Block, issues: string[]): void {
   }
 }
 
+/**
+ * Урок должен идти от простого к сложному.
+ *
+ * Требование викладача: не «только лёгкие» и не «только сложные», а именно
+ * нарастание. Проверяем, а не полагаемся на то, что модель послушалась:
+ * сложность не должна падать, и к концу урок обязан стать труднее начала.
+ *
+ * Запасные задания в кривую не входят — их выдают вне очереди.
+ */
+function checkDifficultyCurve(lesson: Lesson, issues: string[]): void {
+  const tasks = lesson.blocks.filter((block) => block.kind === 'task' && !block.is_bonus);
+  if (tasks.length === 0) return;
+
+  const curve = tasks.map((task) => ({
+    id: task.id,
+    difficulty: task.kind === 'task' ? task.difficulty : 0,
+  }));
+
+  for (let i = 1; i < curve.length; i += 1) {
+    if (curve[i].difficulty < curve[i - 1].difficulty) {
+      issues.push(
+        `складність падає: блок ${curve[i].id} (${curve[i].difficulty}) легший за попередній ` +
+          `${curve[i - 1].id} (${curve[i - 1].difficulty})`,
+      );
+    }
+  }
+
+  // Урок из трёх и более заданий одного уровня — это не «від легкого до складного».
+  if (curve.length >= 3 && curve.at(-1)!.difficulty <= curve[0].difficulty) {
+    issues.push(
+      `урок не ускладнюється: перше завдання має складність ${curve[0].difficulty}, ` +
+        `останнє — ${curve.at(-1)!.difficulty}`,
+    );
+  }
+}
+
 export function findIntegrityIssues(lesson: Lesson): string[] {
   const issues: string[] = [];
 
@@ -159,6 +195,8 @@ export function findIntegrityIssues(lesson: Lesson): string[] {
   if (!lesson.blocks.some((b) => b.kind === 'task')) {
     issues.push('в уроці немає жодного завдання');
   }
+
+  checkDifficultyCurve(lesson, issues);
 
   return issues;
 }

@@ -1,12 +1,14 @@
 import { after, NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateLesson } from '@/lib/ai/generate';
+import { buildGenerationPayload } from '@/lib/ai/webhook-payload';
+import { originFromRequest } from '@/lib/origin';
 import { THEME_CHOICES } from '@/lib/themes';
 import type { Json } from '@/lib/supabase/types';
 
-/** Генерация идёт в фоне после ответа, но всё ещё внутри лимита функции. */
 export const maxDuration = 300;
 
 const themeSlugs = THEME_CHOICES.map((t) => t.slug);
@@ -36,6 +38,8 @@ export async function POST(request: Request) {
   }
 
   const input = body.data;
+  const webhookUrl = process.env.GENERATION_WEBHOOK_URL;
+  const callbackToken = randomBytes(24).toString('base64url');
 
   const { data: lesson, error } = await supabase
     .from('lessons')
@@ -48,6 +52,8 @@ export async function POST(request: Request) {
       status: 'generating',
       source_text: input.source_text,
       generate_spares: input.generate_spares,
+      generation_token: webhookUrl ? callbackToken : null,
+      generation_started_at: new Date().toISOString(),
     })
     .select('id')
     .single();
@@ -59,18 +65,67 @@ export async function POST(request: Request) {
     );
   }
 
-  // Отвечаем сразу — клиент уходит на страницу урока и опрашивает статус.
-  after(async () => {
-    const result = await generateLesson({
-      title: input.title,
-      grade: input.grade,
-      topic: input.topic,
-      theme: input.theme,
-      generateSpares: input.generate_spares,
-      sourceText: input.source_text,
+  const generationInput = {
+    title: input.title,
+    grade: input.grade,
+    topic: input.topic,
+    theme: input.theme,
+    generateSpares: input.generate_spares,
+    sourceText: input.source_text,
+  };
+
+  if (webhookUrl) {
+    // Внешний сценарий: ставим задачу и уходим. Готовый урок придёт на
+    // /api/webhooks/lesson — ждать его в этом запросе нельзя, генерация
+    // занимает минуты.
+    after(async () => {
+      const payload = buildGenerationPayload({
+        lessonId: lesson.id,
+        callbackUrl: `${originFromRequest(request)}/api/webhooks/lesson`,
+        callbackToken,
+        input: generationInput,
+      });
+
+      const admin = createAdminClient();
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(30_000),
+        });
+
+        if (!response.ok) {
+          await admin
+            .from('lessons')
+            .update({
+              status: 'failed',
+              error_message: `Сценарій генерації не прийняв завдання: HTTP ${response.status}.`,
+              generation_token: null,
+            })
+            .eq('id', lesson.id);
+        }
+      } catch (cause) {
+        await admin
+          .from('lessons')
+          .update({
+            status: 'failed',
+            error_message: `Не вдалося звернутися до сценарію генерації: ${
+              cause instanceof Error ? cause.message : 'невідома помилка'
+            }`,
+            generation_token: null,
+          })
+          .eq('id', lesson.id);
+      }
     });
 
-    // RLS-клиент здесь недоступен: пользовательский контекст уже завершён.
+    return NextResponse.json({ id: lesson.id }, { status: 202 });
+  }
+
+  // Запасной путь: прямой вызов модели, если вебхук не настроен.
+  after(async () => {
+    const result = await generateLesson(generationInput);
     const admin = createAdminClient();
 
     if (result.ok) {
