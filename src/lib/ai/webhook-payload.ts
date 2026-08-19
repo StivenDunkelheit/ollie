@@ -108,10 +108,30 @@ export interface GenerationWebhookPayload {
     source_text: string;
   };
   rules: ReturnType<typeof rules>;
+  /**
+   * Те же значения, подготовленные для вставки внутрь JSON-строки.
+   *
+   * Нужны сценариям вроде Make, где тело запроса собирается как текст, а
+   * подставляемые значения не экранируются. Текст задач содержит переводы
+   * строк, правила — тоже; без этого тело запроса разваливается на первом же
+   * уроке. Экранировать на нашей стороне надёжнее, чем выражениями в сценарии.
+   */
+  escaped: {
+    title: string;
+    grade: string;
+    topic: string;
+    source_text: string;
+    rules: Record<keyof ReturnType<typeof rules>, string>;
+    interactives: string;
+    themes: string;
+  };
   reference: {
     themes: { slug: string; label: string }[];
     interactives: { type: string; description: string }[];
     block_kinds: string[];
+    /** Те же данные готовой строкой — чтобы сценарій не збирав їх функціями. */
+    interactives_text: string;
+    themes_text: string;
   };
   output_schema: unknown;
 }
@@ -144,12 +164,21 @@ function forStructuredOutput(node: unknown): unknown {
   return result;
 }
 
+/** Экранирует строку для вставки внутрь JSON-строки, без обрамляющих кавычек. */
+function forJsonString(value: string): string {
+  return JSON.stringify(value).slice(1, -1);
+}
+
 export function buildGenerationPayload(args: {
   lessonId: string;
   callbackUrl: string;
   callbackToken: string;
   input: GenerationInput;
 }): GenerationWebhookPayload {
+  const ruleSet = rules(args.input);
+  const interactivesText = DEFS.map((def) => def.aiDescription).join('\n');
+  const themesText = STORY_THEMES.map((t) => t.slug).join(', ');
+
   return {
     event: 'lesson.generate',
     version: 1,
@@ -164,11 +193,26 @@ export function buildGenerationPayload(args: {
       generate_spares: args.input.generateSpares,
       source_text: args.input.sourceText,
     },
-    rules: rules(args.input),
+    rules: ruleSet,
+    escaped: {
+      title: forJsonString(args.input.title),
+      grade: forJsonString(args.input.grade),
+      topic: forJsonString(args.input.topic ?? ''),
+      source_text: forJsonString(args.input.sourceText),
+      rules: Object.fromEntries(
+        Object.entries(ruleSet).map(([group, lines]) => [group, forJsonString(lines.join('\n'))]),
+      ) as Record<keyof typeof ruleSet, string>,
+      interactives: forJsonString(interactivesText),
+      themes: forJsonString(themesText),
+    },
     reference: {
       themes: STORY_THEMES.map((t) => ({ slug: t.slug, label: t.label })),
       interactives: DEFS.map((def) => ({ type: def.type, description: def.aiDescription })),
       block_kinds: ['intro', 'story', 'task', 'reward', 'boss', 'final_quiz', 'stats', 'finish'],
+      // Готовые строки: в шаблонах Make функции с кавычками ломают JSON-тело
+      // запроса, а простая подстановка — нет.
+      interactives_text: DEFS.map((def) => def.aiDescription).join('\n'),
+      themes_text: themesText,
     },
     // Схема едет вместе с заданием: сценарий подставляет её как structured
     // output, и урок физически не может прийти неправильной формы.

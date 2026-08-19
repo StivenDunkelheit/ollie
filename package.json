@@ -14,7 +14,8 @@
     "db:reset-sessions": "node --env-file=.env.local scripts/reset-sessions.mjs",
     "teacher:create": "node --env-file=.env.local scripts/create-teacher.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "make:blueprint": "node scripts/make-blueprint.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

@@ -1,0 +1,400 @@
+{
+    "name": "Ollie — генерація уроку",
+    "flow": [
+        {
+            "id": 2,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 4297706,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "name": "Завдання від Ollie"
+                },
+                "restore": {
+                    "parameters": {
+                        "hook": {
+                            "data": {
+                                "editable": "true"
+                            },
+                            "label": "My OLLIO DATA"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hook",
+                        "type": "hook:gateway-webhook",
+                        "label": "Webhook",
+                        "required": true
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of results"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "gateway:WebhookRespond",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "status": "200",
+                "body": "{\"accepted\":true}",
+                "headers": []
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0,
+                    "name": "Прийняв завдання"
+                },
+                "restore": {
+                    "expect": {
+                        "headers": {
+                            "mode": "chose"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "status",
+                        "type": "text",
+                        "label": "Status",
+                        "required": true
+                    },
+                    {
+                        "name": "body",
+                        "type": "any",
+                        "label": "Body"
+                    },
+                    {
+                        "name": "headers",
+                        "type": "array",
+                        "label": "Custom headers",
+                        "spec": [
+                            {
+                                "name": "key",
+                                "type": "text",
+                                "label": "Key"
+                            },
+                            {
+                                "name": "value",
+                                "type": "text",
+                                "label": "Value"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "serializeUrl": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "ВСТАВТЕ_СВІЙ_ANTHROPIC_API_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "authUser": "",
+                "authPass": "",
+                "timeout": "300",
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false,
+                "contentType": "application/json",
+                "data": "{\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 8000,\n  \"system\": \"Ти аналізуєш сирий список задач, який дав репетитор. Нічого не відбираєш і не будуєш — лише розбираєш.\\n\\nДля КОЖНОЇ задачі з тексту визнач:\\n- n — порядковий номер у тексті\\n- text — умова дослівно, не змінюй жодного числа\\n- difficulty — складність від 1 (найлегша) до 5 (найважча), відносно рівня класу\\n- skill — коротка назва навички, яку задача перевіряє\\n- duplicate_of — номер задачі, дублікатом або дуже схожою на яку вона є, інакше null\\n- value — навчальна цінність: high, medium або low. Задача, що нічого не перевіряє або повторює вже наявну, має low\\n- answer — правильна відповідь, якщо вона є в тексті або однозначно обчислюється, інакше null\\n\\nОцінюй складність відносно одна одної, а не абсолютно: серед задач мають бути і найлегші, і найважчі.\\n\\nЗаборонено: вигадувати задачі, змінювати умови, здогадуватися про відповідь без упевненості.\\n\\nФОРМАТ ВІДПОВІДІ\\nОдин рядок. Записи розділені \",\n  \"messages\": [{ \"role\": \"user\", \"content\": \"Клас: {{2.escaped.grade}}\\nТема: {{2.escaped.topic}}\\n\\nЗадачі:\\n{{2.escaped.source_text}}\" }]\n}",
+                "followAllRedirects": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0,
+                    "name": "1. Аналіз задач"
+                },
+                "restore": {
+                    "parameters": {
+                        "handleErrors": {
+                            "mode": "chose"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "POST"
+                        },
+                        "headers": {
+                            "mode": "chose"
+                        },
+                        "qs": {
+                            "mode": "chose"
+                        },
+                        "bodyType": {
+                            "label": "Raw"
+                        },
+                        "contentType": {
+                            "label": "JSON (application/json)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 5,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "serializeUrl": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "ВСТАВТЕ_СВІЙ_ANTHROPIC_API_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "authUser": "",
+                "authPass": "",
+                "timeout": "300",
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false,
+                "contentType": "application/json",
+                "data": "{\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 8000,\n  \"system\": \"Ти складаєш план уроку з уже проаналізованих задач. Повних текстів завдань не пишеш — лише вирішуєш, що і в якому порядку буде.\\n\\nВІДБІР\\n{{2.escaped.rules.selection}}\\n\\nСКЛАДНІСТЬ — НАЙВАЖЛИВІШЕ\\n{{2.escaped.rules.difficulty}}\\n\\nРІЗНОМАНІТНІСТЬ\\n{{2.escaped.rules.variety}}\\n\\nСТРУКТУРА\\n{{2.escaped.rules.structure}}\\n\\nТАЙМЕР\\n{{2.escaped.rules.timer}}\\n\\nСЮЖЕТ І ОФОРМЛЕННЯ\\n{{2.escaped.rules.story}}\\n\\nЗАПАСНІ ЗАВДАННЯ\\n{{2.escaped.rules.spares}}\\n\\nДОСТУПНІ ІНТЕРАКТИВИ\\n{{2.escaped.interactives}}\\n\\nДОСТУПНІ ТЕМИ ОФОРМЛЕННЯ\\n{{2.escaped.themes}}\\n\\nПеред відповіддю перевір себе:\\n1. difficulty у блоках task не спадає зліва направо.\\n2. Останнє завдання складніше за перше.\\n3. Два однакових інтерактиви не стоять підряд.\\nЯкщо якась умова порушена — перебудуй план, а не виправдовуйся.\\n\\nФОРМАТ ВІДПОВІДІ\\nОдин рядок. Записи розділені \",\n  \"messages\": [{ \"role\": \"user\", \"content\": \"Назва уроку: {{2.escaped.title}}\\nКлас: {{2.escaped.grade}}\\nТема: {{2.escaped.topic}}\\nОформлення: {{2.input.theme}}\\nЗапасні завдання: {{2.input.generate_spares}}\\n\\nПроаналізовані задачі:\\n{{4.data.content[1].text}}\" }]\n}",
+                "followAllRedirects": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0,
+                    "name": "2. План уроку"
+                },
+                "restore": {
+                    "parameters": {
+                        "handleErrors": {
+                            "mode": "chose"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "POST"
+                        },
+                        "headers": {
+                            "mode": "chose"
+                        },
+                        "qs": {
+                            "mode": "chose"
+                        },
+                        "bodyType": {
+                            "label": "Raw"
+                        },
+                        "contentType": {
+                            "label": "JSON (application/json)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 6,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": true,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "https://api.anthropic.com/v1/messages",
+                "serializeUrl": false,
+                "method": "post",
+                "headers": [
+                    {
+                        "name": "x-api-key",
+                        "value": "ВСТАВТЕ_СВІЙ_ANTHROPIC_API_KEY"
+                    },
+                    {
+                        "name": "anthropic-version",
+                        "value": "2023-06-01"
+                    }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "authUser": "",
+                "authPass": "",
+                "timeout": "600",
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false,
+                "contentType": "application/json",
+                "data": "{\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 16000,\n  \"output_config\": { \"format\": { \"type\": \"json_schema\", \"schema\": {{2.output_schema}} } },\n  \"system\": \"Ти оформлюєш готовий план уроку у фінальний JSON за схемою.\\n\\nРішення вже ухвалені: набір задач, їх порядок, типи інтерактивів, difficulty, тема оформлення. Не змінюй нічого з цього. Твоя робота — розгорнути план у повні блоки.\\n\\nУмови задач бери дослівно з аналізу. Правильні відповіді — звідти ж.\\n\\nВИМОГИ ДО ЗМІСТУ\\n{{2.escaped.rules.content}}\\n\\nТЕХНІЧНІ ВИМОГИ\\n- id короткі, латиницею, унікальні в межах усього уроку\\n- у fill_blank пропуски позначай у тексті подвійними фігурними дужками з id; кожен має запис у blanks з усіма прийнятними варіантами відповіді, включно з різними формами запису числа\\n- у boss поле hp дорівнює кількості раундів\\n- у sort масив items подавай у перемішаному порядку, правильний — у correct_order\\n- кожен блок kind=task обовʼязково має поле difficulty з плану\\n\\nПоверни ЛИШЕ JSON за схемою, без markdown і без пояснень.\",\n  \"messages\": [{ \"role\": \"user\", \"content\": \"ПЛАН УРОКУ:\\n{{5.data.content[1].text}}\\n\\nПРОАНАЛІЗОВАНІ ЗАДАЧІ:\\n{{4.data.content[1].text}}\" }]\n}",
+                "followAllRedirects": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 1200,
+                    "y": 0,
+                    "name": "3. Побудова уроку"
+                },
+                "restore": {
+                    "parameters": {
+                        "handleErrors": {
+                            "mode": "chose"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "POST"
+                        },
+                        "headers": {
+                            "mode": "chose"
+                        },
+                        "qs": {
+                            "mode": "chose"
+                        },
+                        "bodyType": {
+                            "label": "Raw"
+                        },
+                        "contentType": {
+                            "label": "JSON (application/json)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 7,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "parameters": {
+                "handleErrors": false,
+                "useNewZLibDeCompress": true
+            },
+            "mapper": {
+                "url": "{{2.callback.url}}",
+                "serializeUrl": false,
+                "method": "post",
+                "headers": [],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "authUser": "",
+                "authPass": "",
+                "timeout": "120",
+                "shareCookies": false,
+                "ca": "",
+                "rejectUnauthorized": true,
+                "followRedirect": true,
+                "useQuerystring": false,
+                "gzip": true,
+                "useMtls": false,
+                "contentType": "application/json",
+                "data": "{\n  \"lesson_id\": \"{{2.lesson_id}}\",\n  \"token\": \"{{2.callback.token}}\",\n  \"status\": \"ok\",\n  \"lesson\": {{6.data.content[1].text}},\n  \"meta\": {\n    \"model\": \"claude-haiku-4-5\",\n    \"stages\": 3,\n    \"input_tokens\": {{4.data.usage.input_tokens + 5.data.usage.input_tokens + 6.data.usage.input_tokens}},\n    \"output_tokens\": {{4.data.usage.output_tokens + 5.data.usage.output_tokens + 6.data.usage.output_tokens}}\n  }\n}",
+                "followAllRedirects": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 1500,
+                    "y": 0,
+                    "name": "4. Віддати урок Ollie"
+                },
+                "restore": {
+                    "parameters": {
+                        "handleErrors": {
+                            "mode": "chose"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "POST"
+                        },
+                        "headers": {
+                            "mode": "chose"
+                        },
+                        "qs": {
+                            "mode": "chose"
+                        },
+                        "bodyType": {
+                            "label": "Raw"
+                        },
+                        "contentType": {
+                            "label": "JSON (application/json)"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}
