@@ -2,15 +2,19 @@
 
 Платформа генерації інтерактивних уроків для репетиторів.
 
-Викладач вставляє задачі текстом — один AI-запит перетворює їх на готовий урок
-з інтерактивами, сюжетом і нагородами. Урок проводиться в реальному часі:
+Викладач вставляє задачі текстом — AI відбирає найцінніші, вибудовує їх від
+легких до складних і розгортає в урок з інтерактивами, сюжетом і нагородами. Урок проводиться в реальному часі:
 викладач керує з Teacher Mode, учень проходить за посиланням без реєстрації.
 
 ## Стек
 
 - **Next.js 16** (App Router, TypeScript) — інтерфейс і API
 - **Supabase** — Postgres, авторизація викладача, Realtime для синхронізації
-- **Claude API** — одна генерація уроку на запит
+- **Make.com + Claude** — генерація уроку зовнішнім сценарієм
+
+Генерація винесена у сценарій Make: застосунок надсилає завдання на вебхук і
+приймає готовий урок на callback, тому промпт і модель змінюються без
+деплою — див. [docs/make/scenario.md](docs/make/scenario.md).
 
 Окремого WebSocket-сервера немає: синхронізація односпрямована (викладач веде —
 учень слідує), тому вистачає Supabase Realtime, а перевірка відповідей живе у
@@ -32,9 +36,9 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → API Keys → Publishable key (`sb_publishable_…`) |
 | `SUPABASE_SECRET_KEY` | Supabase → API Keys → Secret key (`sb_secret_…`). Обходить RLS — тільки на сервері |
 | `SUPABASE_DB_URL` | Supabase → Project Settings → Database → Connection string → URI. Містить пароль бази; потрібен лише для `npm run db:migrate` |
-| `GENERATION_WEBHOOK_URL` | Вебхук сценарію Make.com, який генерує урок. Див. [docs/generation-webhook.md](docs/generation-webhook.md) |
+| `GENERATION_WEBHOOK_URL` | Вебхук сценарію Make.com, який генерує урок. Див. [docs/generation-webhook.md](docs/generation-webhook.md) і [docs/make/scenario.md](docs/make/scenario.md) |
 | `ANTHROPIC_API_KEY` | Потрібен лише як запасний шлях, коли вебхук не заданий |
-| `NEXT_PUBLIC_APP_URL` | Базова адреса застосунку |
+| `NEXT_PUBLIC_APP_URL` | Необовʼязково. Адреса береться із запиту; задавайте лише за проксі без forwarded-заголовків |
 
 ### База даних
 
@@ -93,7 +97,7 @@ npm run teacher:create -- пошта@example.com пароль    # або сві
 ```
 src/
 ├── app/
-│   ├── (auth)/          вхід і реєстрація
+│   ├── (auth)/          вхід викладача
 │   ├── (dashboard)/     кабінет викладача
 │   ├── demo/            вітрина уроку без бази
 │   └── api/             генерація, статус, публічні ендпоїнти учня
